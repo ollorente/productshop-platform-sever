@@ -221,9 +221,11 @@ app.remove = async (req, res, next) => {
     await Photo.find({
       productId: productInfo._id
     }, (error, item) => {
-      if (error) return res.status(500).json({
-        error: `Something bad occurred: ${error}`
-      })
+      if (error) {
+        return res.status(500).json({
+          error: `Something bad occurred: ${error}`
+        })
+      }
 
       item.forEach(async e => {
         await Photo.deleteOne({

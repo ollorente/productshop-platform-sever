@@ -1,7 +1,8 @@
-require('dotenv').config()
-/*const cloudinary = require('cloudinary').v2*/
-/*require('../helpers/cloudinary')*/
 const fs = require('fs-extra')
+
+const cloudinary = require('cloudinary')
+require('dotenv').config()
+require('../helpers/cloudinary')
 
 const app = {}
 
@@ -24,25 +25,29 @@ app.create = async (req, res, next) => {
     barcode: id,
     isLock: false
   })
-  if (!productInfo) return res.status(500).json({
-    error: 'Product not found!.'
-  })
+  if (!productInfo) {
+    return res.status(500).json({
+      error: 'Product not found!.'
+    })
+  }
 
-   const userInfo = await User.findOne({
-     _id: productInfo.userId,
-     isLock: false
-   })
-   if (!userInfo) return res.status(500).json({
-     error: `User not found or action denied`
-   })
+  const userInfo = await User.findOne({
+    _id: productInfo.userId,
+    isLock: false
+  })
+  if (!userInfo) {
+    return res.status(500).json({
+      error: 'User not found or action denied'
+    })
+  }
 
   if (req.file) {
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: `${userInfo.uid}/${productInfo.barcode}/`
-    },
-    function (error, result) {
-      console.log(result, error)
-    })
+    const result = await cloudinary.v2.uploader.upload(req.file.path,
+			{ folder: 'upload/' },
+			function(error, result) {
+				console.log(result, error)
+			})
+
 
     const newData = new Photo({
       productId: productInfo._id,
