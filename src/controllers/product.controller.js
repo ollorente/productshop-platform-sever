@@ -25,7 +25,7 @@ app.create = async (req, res, next) => {
   })
   if (!userInfo) {
     return res.status(500).json({
-      error: `Access denied`
+      error: 'Access denied'
     })
   }
 
@@ -34,7 +34,7 @@ app.create = async (req, res, next) => {
   })
   if (barcodeInfo) {
     return res.status(500).json({
-      error: `Product exist!.`
+      error: 'Product exist!.'
     })
   }
 
@@ -92,22 +92,22 @@ app.list = async (req, res, next) => {
   })
   if (!userInfo) {
     return res.status(500).json({
-      error: `Access denied!.`
+      error: 'Access denied!.'
     })
   }
 
   let result, count
   try {
     result = await Product.find({
-        userId: userInfo._id
-      }, {
-        _id: 0,
-        title: 1,
-        barcode: 1,
-        isActive: 1,
-        createdAt: 1,
-        _photos: 1
-      })
+      userId: userInfo._id
+    }, {
+      _id: 0,
+      title: 1,
+      barcode: 1,
+      isActive: 1,
+      createdAt: 1,
+      _photos: 1
+    })
       .populate({
         path: '_photos',
         select: '-_id image order',
@@ -149,20 +149,20 @@ app.get = async (req, res, next) => {
   })
   if (!userInfo) {
     return res.status(500).json({
-      error: `Access denied!.`
+      error: 'Access denied!.'
     })
   }
 
   let result
   try {
     result = await Product.findOne({
-        barcode: id,
-        userId: userInfo._id
-      }, {
-        _id: 0,
-        isLock: 0,
-        __v: 0
-      })
+      barcode: id,
+      userId: userInfo._id
+    }, {
+      _id: 0,
+      isLock: 0,
+      __v: 0
+    })
       .populate({
         path: 'userId',
         select: '-_id displayName photoURL uid',
@@ -194,7 +194,7 @@ app.update = async (req, res, next) => {
   })
   if (!productInfo) {
     return res.status(500).json({
-      error: `Product don't found!.`
+      error: 'Product don\'t found!.'
     })
   }
 
@@ -298,15 +298,15 @@ app.listPerUser = async (req, res, next) => {
   let result, count
   try {
     result = await Product.find({
-        userId: userInfo._id
-      }, {
-        _id: 0,
-        title: 1,
-        barcode: 1,
-        isActive: 1,
-        createdAt: 1,
-        _photos: 1
-      })
+      userId: userInfo._id
+    }, {
+      _id: 0,
+      title: 1,
+      barcode: 1,
+      isActive: 1,
+      createdAt: 1,
+      _photos: 1
+    })
       .populate({
         path: '_photos',
         select: '-_id image order',

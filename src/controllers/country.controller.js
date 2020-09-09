@@ -61,15 +61,15 @@ app.list = async (req, res, next) => {
   let result, count
   try {
     result = await Country.find({
-        isActive: true
-      }, {
-        _id: 0,
-        _statesCount: 1,
-        name: 1,
-        code: 1,
-        slug: 1,
-        isActive: 1
-      }).limit(pagination.limit(limit))
+      isActive: true
+    }, {
+      _id: 0,
+      _statesCount: 1,
+      name: 1,
+      code: 1,
+      slug: 1,
+      isActive: 1
+    }).limit(pagination.limit(limit))
       .skip(pagination.page(page))
       .sort({
         name: 1
@@ -98,11 +98,11 @@ app.get = async (req, res, next) => {
   let result
   try {
     result = await Country.findOne({
-        slug: id
-      }, {
-        _id: 0,
-        __v: 0
-      })
+      slug: id
+    }, {
+      _id: 0,
+      __v: 0
+    })
       .populate({
         path: '_states',
         select: '-_id name slug isActive',

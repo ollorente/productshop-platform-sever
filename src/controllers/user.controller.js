@@ -80,12 +80,12 @@ app.list = async (req, res, next) => {
   let result
   try {
     result = await User.find({}, {
-        _id: 0,
-        displayName: 1,
-        uid: 1,
-        isActive: 1,
-        isLock: 1
-      })
+      _id: 0,
+      displayName: 1,
+      uid: 1,
+      isActive: 1,
+      isLock: 1
+    })
       .limit(pagination.limit(limit))
       .skip(pagination.page(page))
       .sort({
@@ -110,11 +110,11 @@ app.get = async (req, res, next) => {
   let result
   try {
     result = await User.findOne({
-        uid: id
-      }, {
-        _id: 0,
-        __v: 0
-      })
+      uid: id
+    }, {
+      _id: 0,
+      __v: 0
+    })
       .populate({
         path: '_products',
         select: '-_id barcode title',
@@ -200,13 +200,13 @@ app.profile = async (req, res, next) => {
   let result
   try {
     result = await User.findOne({
-        _id: req.user._id
-      }, {
-        _id: 0,
-        password: 0,
-        isLock: 0,
-        __v: 0
-      })
+      _id: req.user._id
+    }, {
+      _id: 0,
+      password: 0,
+      isLock: 0,
+      __v: 0
+    })
       .populate({
         path: '_products',
         select: '-_id',

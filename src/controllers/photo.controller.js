@@ -5,6 +5,7 @@ require('dotenv').config()
 require('../helpers/cloudinary')
 
 const {
+  authUser,
   pagination
 } = require('../helpers')
 
@@ -25,34 +26,26 @@ app.create = async (req, res, next) => {
     order
   } = req.body
 
-  const userInfo = await User.findOne({
-    _id: req.user._id,
-    isLock: false
-  })
-  if (!userInfo) {
-    return res.status(500).json({
-      error: `Access denied!.`
-    })
-  }
+  const userAuth = await authUser(req.user._id)
 
   const productInfo = await Product.findOne({
     barcode: id,
-    userId: userInfo._id,
+    userId: userAuth._id,
     isLock: false
   })
   if (!productInfo) {
     return res.status(500).json({
-      error: `Product don´t found!.`
+      error: 'Product don´t found!.'
     })
   }
 
   if (req.file) {
     const result = await cloudinary.v2.uploader.upload(req.file.path, {
-        folder: `${userInfo.uid}/${productInfo.barcode}/`
-      },
-      function (error, result) {
-        console.log(result, error)
-      })
+      folder: `${userInfo.uid}/${productInfo.barcode}/`
+    },
+    function (error, result) {
+      console.log(result, error)
+    })
 
     const newData = new Photo({
       productId: productInfo._id,
@@ -104,37 +97,29 @@ app.list = async (req, res, next) => {
     page
   } = req.query
 
-  const userInfo = await User.findOne({
-    _id: req.user._id,
-    isLock: false
-  })
-  if (!userInfo) {
-    return res.status(500).json({
-      error: `Access denied!.`
-    })
-  }
+  const userAuth = await authUser(req.user._id)
 
   const productInfo = await Product.findOne({
     barcode: id,
-    userId: userInfo._id,
+    userId: userAuth._id,
     isLock: false
   })
   if (!productInfo) {
     return res.status(500).json({
-      error: `Product don´t found!.`
+      error: 'Product don´t found!.'
     })
   }
 
   let result
   try {
     result = await Photo.find({
-        productId: productInfo._id
-      }, {
-        productId: 1,
-        image: 1,
-        order: 1,
-        createdAt: 1
-      })
+      productId: productInfo._id
+    }, {
+      productId: 1,
+      image: 1,
+      order: 1,
+      createdAt: 1
+    })
       .populate({
         path: 'productId',
         select: '-_id barcode title',
@@ -159,24 +144,16 @@ app.list = async (req, res, next) => {
 }
 
 app.get = async (req, res, next) => {
-  const userInfo = await User.findOne({
-    _id: req.user._id,
-    isLock: false
-  })
-  if (!userInfo) {
-    return res.status(500).json({
-      error: `Access denied!.`
-    })
-  }
+  const userAuth = await authUser(req.user._id)
 
   const productInfo = await Product.findOne({
     barcode: id,
-    userId: userInfo._id,
+    userId: userAuth._id,
     isLock: false
   })
   if (!productInfo) {
     return res.status(500).json({
-      error: `Product don´t found!.`
+      error: 'Product don´t found!.'
     })
   }
 
@@ -201,24 +178,16 @@ app.update = async (req, res, next) => {
 
   const update = req.body
 
-  const userInfo = await User.findOne({
-    _id: req.user._id,
-    isLock: false
-  })
-  if (!userInfo) {
-    return res.status(500).json({
-      error: `Access denied!.`
-    })
-  }
+  const userAuth = await authUser(req.user._id)
 
   const productInfo = await Product.findOne({
     barcode: id,
-    userId: userInfo._id,
+    userId: userAuth._id,
     isLock: false
   })
   if (!productInfo) {
     return res.status(500).json({
-      error: `Product don´t found!.`
+      error: 'Product don´t found!.'
     })
   }
 

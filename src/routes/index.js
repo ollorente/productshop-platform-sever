@@ -15,7 +15,9 @@ const {
 } = require('../controllers')
 
 router.route('/')
-  .get(verifyToken, (req, res, next) => res.status(200).json({ message: 'Welcome to ProductShop APIRestful!' }))
+  .get(verifyToken, (req, res, next) => res.status(200).json({
+    message: 'Welcome to ProductShop APIRestful!'
+  }))
 
 router.route('/admins')
   .post(verifyToken, ADMIN.create)
@@ -58,8 +60,8 @@ router.route('/products/:id')
   .delete(verifyToken, PRODUCT.remove) /* TODO */
 
 router.route('/products/:id/photos')
-  .post(verifyToken, PHOTO.create) /* TODO */
-  .get(verifyToken, PHOTO.list) /* TODO */
+  .post(verifyToken, PHOTO.create)
+  .get(verifyToken, PHOTO.list)
 
 router.route('/states/:id')
   .get(verifyToken, STATE.get)
@@ -91,6 +93,8 @@ router.route('/register')
   .post(AUTH.register)
 
 router.route('*')
-  .get((req, res, next) => res.status(404).json({ error: `Page don't found!` }))
+  .get((req, res, next) => res.status(404).json({
+    error: 'Page don\'t found!'
+  }))
 
 module.exports = router

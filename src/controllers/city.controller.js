@@ -96,15 +96,15 @@ app.list = async (req, res, next) => {
   let result, count
   try {
     result = await City.find({
-        stateId: stateInfo._id,
-        isActive: true
-      }, {
-        _id: 0,
-        stateId: 1,
-        isActive: 1,
-        name: 1,
-        slug: 1
-      })
+      stateId: stateInfo._id,
+      isActive: true
+    }, {
+      _id: 0,
+      stateId: 1,
+      isActive: 1,
+      name: 1,
+      slug: 1
+    })
       .populate({
         path: 'stateId',
         select: '-_id slug',
@@ -142,12 +142,12 @@ app.get = async (req, res, next) => {
   let result
   try {
     result = await City.findOne({
-        slug: id
-      }, {
-        _id: 0,
-        _cities: 0,
-        __v: 0
-      })
+      slug: id
+    }, {
+      _id: 0,
+      _cities: 0,
+      __v: 0
+    })
       .populate({
         path: 'stateId',
         select: '-_id slug',
