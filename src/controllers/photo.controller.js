@@ -4,6 +4,10 @@ const cloudinary = require('cloudinary')
 require('dotenv').config()
 require('../helpers/cloudinary')
 
+const {
+  pagination
+} = require('../helpers')
+
 const app = {}
 
 const {
@@ -21,33 +25,34 @@ app.create = async (req, res, next) => {
     order
   } = req.body
 
-  const productInfo = await Product.findOne({
-    barcode: id,
-    isLock: false
-  })
-  if (!productInfo) {
-    return res.status(500).json({
-      error: 'Product not found!.'
-    })
-  }
-
   const userInfo = await User.findOne({
-    _id: productInfo.userId,
+    _id: req.user._id,
     isLock: false
   })
   if (!userInfo) {
     return res.status(500).json({
-      error: 'User not found or action denied'
+      error: `Access denied!.`
+    })
+  }
+
+  const productInfo = await Product.findOne({
+    barcode: id,
+    userId: userInfo._id,
+    isLock: false
+  })
+  if (!productInfo) {
+    return res.status(500).json({
+      error: `Product don´t found!.`
     })
   }
 
   if (req.file) {
-    const result = await cloudinary.v2.uploader.upload(req.file.path,
-			{ folder: 'upload/' },
-			function(error, result) {
-				console.log(result, error)
-			})
-
+    const result = await cloudinary.v2.uploader.upload(req.file.path, {
+        folder: `${userInfo.uid}/${productInfo.barcode}/`
+      },
+      function (error, result) {
+        console.log(result, error)
+      })
 
     const newData = new Photo({
       productId: productInfo._id,
@@ -69,6 +74,7 @@ app.create = async (req, res, next) => {
           _photos: info._id
         }
       })
+
       await Product.findOneAndUpdate({
         _id: productInfo._id
       }, {
@@ -76,66 +82,173 @@ app.create = async (req, res, next) => {
           _photosCount: 1
         }
       })
-    } catch (error) {
-      return next(error)
-    }
 
-    res.status(201).json({
-      data: info
-    })
+      res.status(201).json({
+        data: info
+      })
+    } catch (error) {
+      res.status(500).json({
+        error: error.toString()
+      })
+    }
   }
 }
 
 app.list = async (req, res, next) => {
-  let result
-  try {
-    result = await 'List'
-  } catch (error) {
-    return next(error)
+  const {
+    id
+  } = req.params
+
+  const {
+    limit,
+    page
+  } = req.query
+
+  const userInfo = await User.findOne({
+    _id: req.user._id,
+    isLock: false
+  })
+  if (!userInfo) {
+    return res.status(500).json({
+      error: `Access denied!.`
+    })
   }
 
-  res.status(200).json({
-    data: result
+  const productInfo = await Product.findOne({
+    barcode: id,
+    userId: userInfo._id,
+    isLock: false
   })
+  if (!productInfo) {
+    return res.status(500).json({
+      error: `Product don´t found!.`
+    })
+  }
+
+  let result
+  try {
+    result = await Photo.find({
+        productId: productInfo._id
+      }, {
+        productId: 1,
+        image: 1,
+        order: 1,
+        createdAt: 1
+      })
+      .populate({
+        path: 'productId',
+        select: '-_id barcode title',
+        match: {
+          isLock: false
+        }
+      })
+      .limit(pagination.limit(limit))
+      .skip(pagination.page(page))
+      .sort({
+        order: 1
+      })
+
+    res.status(200).json({
+      data: result
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 app.get = async (req, res, next) => {
+  const userInfo = await User.findOne({
+    _id: req.user._id,
+    isLock: false
+  })
+  if (!userInfo) {
+    return res.status(500).json({
+      error: `Access denied!.`
+    })
+  }
+
+  const productInfo = await Product.findOne({
+    barcode: id,
+    userId: userInfo._id,
+    isLock: false
+  })
+  if (!productInfo) {
+    return res.status(500).json({
+      error: `Product don´t found!.`
+    })
+  }
+
   let result
   try {
     result = await 'Get'
-  } catch (error) {
-    return next(error)
-  }
 
-  res.status(200).json({
-    data: result
-  })
+    res.status(200).json({
+      data: result
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 app.update = async (req, res, next) => {
+  const {
+    id
+  } = req.params
+
+  const update = req.body
+
+  const userInfo = await User.findOne({
+    _id: req.user._id,
+    isLock: false
+  })
+  if (!userInfo) {
+    return res.status(500).json({
+      error: `Access denied!.`
+    })
+  }
+
+  const productInfo = await Product.findOne({
+    barcode: id,
+    userId: userInfo._id,
+    isLock: false
+  })
+  if (!productInfo) {
+    return res.status(500).json({
+      error: `Product don´t found!.`
+    })
+  }
+
   let result
   try {
     result = await 'Update'
-  } catch (error) {
-    return next(error)
-  }
 
-  res.status(200).json({
-    data: result
-  })
+    res.status(200).json({
+      data: result
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 app.remove = async (req, res, next) => {
   let result
   try {
     result = await 'Remove'
-  } catch (error) {
-    return next(error)
-  }
 
-  res.status(200).json({
-    data: result
-  })
+    res.status(200).json({
+      data: result
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 module.exports = app

@@ -41,13 +41,15 @@ app.create = async (req, res, next) => {
   let result
   try {
     result = await newData.save()
-  } catch (error) {
-    return next(error)
-  }
 
-  res.status(201).json({
-    data: result
-  })
+    res.status(201).json({
+      data: result
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 app.list = async (req, res, next) => {
@@ -59,15 +61,15 @@ app.list = async (req, res, next) => {
   let result, count
   try {
     result = await Country.find({
-      isActive: true
-    }, {
-      _id: 0,
-      _statesCount: 1,
-      name: 1,
-      code: 1,
-      slug: 1,
-      isActive: 1
-    }).limit(pagination.limit(limit))
+        isActive: true
+      }, {
+        _id: 0,
+        _statesCount: 1,
+        name: 1,
+        code: 1,
+        slug: 1,
+        isActive: 1
+      }).limit(pagination.limit(limit))
       .skip(pagination.page(page))
       .sort({
         name: 1
@@ -76,14 +78,16 @@ app.list = async (req, res, next) => {
     count = await Country.countDocuments({
       isActive: true
     })
-  } catch (error) {
-    return next(error)
-  }
 
-  res.status(200).json({
-    data: result,
-    count
-  })
+    res.status(200).json({
+      data: result,
+      count
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 app.get = async (req, res, next) => {
@@ -94,11 +98,11 @@ app.get = async (req, res, next) => {
   let result
   try {
     result = await Country.findOne({
-      slug: id
-    }, {
-      _id: 0,
-      __v: 0
-    })
+        slug: id
+      }, {
+        _id: 0,
+        __v: 0
+      })
       .populate({
         path: '_states',
         select: '-_id name slug isActive',
@@ -112,13 +116,15 @@ app.get = async (req, res, next) => {
           }
         }
       })
-  } catch (error) {
-    return next(error)
-  }
 
-  res.status(200).json({
-    data: result
-  })
+    res.status(200).json({
+      data: result
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 app.update = async (req, res, next) => {
@@ -145,13 +151,15 @@ app.update = async (req, res, next) => {
     }, {
       new: true
     })
-  } catch (error) {
-    return next(error)
-  }
 
-  res.status(200).json({
-    data: result
-  })
+    res.status(200).json({
+      data: result
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 app.remove = async (req, res, next) => {
@@ -205,13 +213,15 @@ app.remove = async (req, res, next) => {
     result = await Country.deleteOne({
       _id: countryInfo._id
     })
-  } catch (error) {
-    return next(error)
-  }
 
-  res.status(204).json({
-    data: result
-  })
+    res.status(204).json({
+      data: result
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 module.exports = app

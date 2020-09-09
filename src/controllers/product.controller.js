@@ -12,10 +12,6 @@ const {
 
 app.create = async (req, res, next) => {
   const {
-    id
-  } = req.params
-
-  const {
     barcode,
     title,
     slug,
@@ -24,12 +20,12 @@ app.create = async (req, res, next) => {
   } = req.body
 
   const userInfo = await User.findOne({
-    uid: id,
+    _id: req.user._id,
     isLock: false
   })
   if (!userInfo) {
     return res.status(500).json({
-      error: 'User not found!.'
+      error: `Access denied`
     })
   }
 
@@ -38,7 +34,7 @@ app.create = async (req, res, next) => {
   })
   if (barcodeInfo) {
     return res.status(500).json({
-      error: 'Product exist!.'
+      error: `Product exist!.`
     })
   }
 
@@ -62,6 +58,7 @@ app.create = async (req, res, next) => {
         _products: result._id
       }
     })
+
     await User.findOneAndUpdate({
       uid: userInfo.uid
     }, {
@@ -69,13 +66,15 @@ app.create = async (req, res, next) => {
         _productsCount: 1
       }
     })
-  } catch (error) {
-    return next(error)
-  }
 
-  res.status(201).json({
-    data: result
-  })
+    res.status(201).json({
+      data: result
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 app.list = async (req, res, next) => {
@@ -93,22 +92,22 @@ app.list = async (req, res, next) => {
   })
   if (!userInfo) {
     return res.status(500).json({
-      error: 'User not found!.'
+      error: `Access denied!.`
     })
   }
 
   let result, count
   try {
     result = await Product.find({
-      userId: userInfo._id
-    }, {
-      _id: 0,
-      title: 1,
-      barcode: 1,
-      isActive: 1,
-      createdAt: 1,
-      _photos: 1
-    })
+        userId: userInfo._id
+      }, {
+        _id: 0,
+        title: 1,
+        barcode: 1,
+        isActive: 1,
+        createdAt: 1,
+        _photos: 1
+      })
       .populate({
         path: '_photos',
         select: '-_id image order',
@@ -128,14 +127,16 @@ app.list = async (req, res, next) => {
     count = await Product.countDocuments({
       userId: userInfo._id
     })
-  } catch (error) {
-    return next(error)
-  }
 
-  res.status(200).json({
-    data: result,
-    count
-  })
+    res.status(200).json({
+      data: result,
+      count
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 app.get = async (req, res, next) => {
@@ -143,15 +144,25 @@ app.get = async (req, res, next) => {
     id
   } = req.params
 
+  const userInfo = await User.findOne({
+    _id: req.user._id
+  })
+  if (!userInfo) {
+    return res.status(500).json({
+      error: `Access denied!.`
+    })
+  }
+
   let result
   try {
     result = await Product.findOne({
-      barcode: id
-    }, {
-      _id: 0,
-      isLock: 0,
-      __v: 0
-    })
+        barcode: id,
+        userId: userInfo._id
+      }, {
+        _id: 0,
+        isLock: 0,
+        __v: 0
+      })
       .populate({
         path: 'userId',
         select: '-_id displayName photoURL uid',
@@ -160,13 +171,15 @@ app.get = async (req, res, next) => {
           isLock: false
         }
       })
-  } catch (error) {
-    return next(error)
-  }
 
-  res.status(200).json({
-    data: result
-  })
+    res.status(200).json({
+      data: result
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 app.update = async (req, res, next) => {
@@ -176,11 +189,12 @@ app.update = async (req, res, next) => {
   const update = req.body
 
   const productInfo = await Product.findOne({
-    barcode: id
+    barcode: id,
+    userId: req.user._id
   })
   if (!productInfo) {
     return res.status(500).json({
-      error: 'Product not found!.'
+      error: `Product don't found!.`
     })
   }
 
@@ -193,13 +207,15 @@ app.update = async (req, res, next) => {
     }, {
       new: true
     })
-  } catch (error) {
-    return next(error)
-  }
 
-  res.status(200).json({
-    data: result
-  })
+    res.status(200).json({
+      data: result
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 app.remove = async (req, res, next) => {
@@ -208,11 +224,12 @@ app.remove = async (req, res, next) => {
   } = req.params
 
   const productInfo = await Product.findOne({
-    barcode: id
+    barcode: id,
+    userId: req.user._id
   })
   if (!productInfo) {
     return res.status(500).json({
-      error: 'Product not found!.'
+      error: error.toString()
     })
   }
 
@@ -252,13 +269,73 @@ app.remove = async (req, res, next) => {
         _productsCount: -1
       }
     })
+
+    res.status(204).json({
+      data: result
+    })
   } catch (error) {
-    return next(error)
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
+}
+
+app.listPerUser = async (req, res, next) => {
+  const {
+    limit,
+    page
+  } = req.query
+
+  const userInfo = await User.findOne({
+    _id: req.user._id
+  })
+  if (!userInfo) {
+    return res.status(500).json({
+      error: error.toString()
+    })
   }
 
-  res.status(204).json({
-    data: result
-  })
+  let result, count
+  try {
+    result = await Product.find({
+        userId: userInfo._id
+      }, {
+        _id: 0,
+        title: 1,
+        barcode: 1,
+        isActive: 1,
+        createdAt: 1,
+        _photos: 1
+      })
+      .populate({
+        path: '_photos',
+        select: '-_id image order',
+        options: {
+          limit: 1,
+          sort: {
+            order: 1
+          }
+        }
+      })
+      .limit(pagination.limit(limit))
+      .skip(pagination.page(page))
+      .sort({
+        title: 1
+      })
+
+    count = await Product.countDocuments({
+      userId: userInfo._id
+    })
+
+    res.status(200).json({
+      data: result,
+      count
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 module.exports = app

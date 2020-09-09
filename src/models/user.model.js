@@ -4,19 +4,35 @@ const {
 } = require('mongoose')
 
 const dbSchema = new Schema({
-  displayName: String,
+  displayName: {
+    type: String,
+    max: 256,
+    min: 3
+  },
   email: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    max: 256,
+    min: 6
   },
-  phoneNumber: String,
+  password: {
+    type: String,
+    required: true,
+    max: 255,
+    min: 3
+  },
+  phoneNumber: {
+    type: String,
+    max: 20,
+    min: 6
+  },
   photoURL: String,
   providerId: String,
   uid: {
     type: String,
-    required: true,
-    unique: true
+    unique: true,
+    required: true
   },
   _products: [{
     type: Schema.ObjectId,

@@ -58,6 +58,7 @@ app.create = async (req, res, next) => {
         _states: result._id
       }
     })
+
     await Country.findOneAndUpdate({
       _id: countryInfo._id
     }, {
@@ -65,13 +66,15 @@ app.create = async (req, res, next) => {
         _statesCount: 1
       }
     })
-  } catch (error) {
-    return next(error)
-  }
 
-  res.status(201).json({
-    data: result
-  })
+    res.status(201).json({
+      data: result
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 app.list = async (req, res, next) => {
@@ -96,15 +99,15 @@ app.list = async (req, res, next) => {
   let result, count
   try {
     result = await State.find({
-      countryId: countryInfo._id,
-      isActive: true
-    }, {
-      _id: 0,
-      countryId: 1,
-      isActive: 1,
-      name: 1,
-      slug: 1
-    })
+        countryId: countryInfo._id,
+        isActive: true
+      }, {
+        _id: 0,
+        countryId: 1,
+        isActive: 1,
+        name: 1,
+        slug: 1
+      })
       .populate({
         path: 'countryId',
         select: '-_id slug',
@@ -117,18 +120,21 @@ app.list = async (req, res, next) => {
       .sort({
         name: 1
       })
+
     count = await State.countDocuments({
       countryId: countryInfo._id,
       isActive: true
     })
-  } catch (error) {
-    return next(error)
-  }
 
-  res.status(200).json({
-    data: result,
-    count
-  })
+    res.status(200).json({
+      data: result,
+      count
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 app.get = async (req, res, next) => {
@@ -139,12 +145,12 @@ app.get = async (req, res, next) => {
   let result
   try {
     result = await State.findOne({
-      slug: id
-    }, {
-      _id: 0,
-      _cities: 0,
-      __v: 0
-    })
+        slug: id
+      }, {
+        _id: 0,
+        _cities: 0,
+        __v: 0
+      })
       .populate({
         path: 'countryId',
         select: '-_id slug',
@@ -152,13 +158,15 @@ app.get = async (req, res, next) => {
           isActive: true
         }
       })
-  } catch (error) {
-    return next(error)
-  }
 
-  res.status(200).json({
-    data: result
-  })
+    res.status(200).json({
+      data: result
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 app.update = async (req, res, next) => {
@@ -185,13 +193,15 @@ app.update = async (req, res, next) => {
     }, {
       new: true
     })
-  } catch (error) {
-    return next(error)
-  }
 
-  res.status(200).json({
-    data: result
-  })
+    res.status(200).json({
+      data: result
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 app.remove = async (req, res, next) => {
@@ -237,6 +247,7 @@ app.remove = async (req, res, next) => {
         _states: result._id
       }
     })
+
     await Country.findOneAndUpdate({
       _id: stateInfo.countryId
     }, {
@@ -244,13 +255,15 @@ app.remove = async (req, res, next) => {
         _statesCount: -1
       }
     })
-  } catch (error) {
-    return next(error)
-  }
 
-  res.status(204).json({
-    data: result
-  })
+    res.status(204).json({
+      data: result
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 module.exports = app

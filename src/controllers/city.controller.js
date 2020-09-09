@@ -55,6 +55,7 @@ app.create = async (req, res, next) => {
         _cities: result._id
       }
     })
+
     await State.findOneAndUpdate({
       _id: stateInfo._id
     }, {
@@ -62,13 +63,15 @@ app.create = async (req, res, next) => {
         _citiesCount: 1
       }
     })
-  } catch (error) {
-    return next(error)
-  }
 
-  res.status(201).json({
-    data: result
-  })
+    res.status(201).json({
+      data: result
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 app.list = async (req, res, next) => {
@@ -93,15 +96,15 @@ app.list = async (req, res, next) => {
   let result, count
   try {
     result = await City.find({
-      stateId: stateInfo._id,
-      isActive: true
-    }, {
-      _id: 0,
-      stateId: 1,
-      isActive: 1,
-      name: 1,
-      slug: 1
-    })
+        stateId: stateInfo._id,
+        isActive: true
+      }, {
+        _id: 0,
+        stateId: 1,
+        isActive: 1,
+        name: 1,
+        slug: 1
+      })
       .populate({
         path: 'stateId',
         select: '-_id slug',
@@ -114,18 +117,21 @@ app.list = async (req, res, next) => {
       .sort({
         name: 1
       })
+
     count = await City.countDocuments({
       stateId: stateInfo._id,
       isActive: true
     })
-  } catch (error) {
-    return next(error)
-  }
 
-  res.status(200).json({
-    data: result,
-    count
-  })
+    res.status(200).json({
+      data: result,
+      count
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 app.get = async (req, res, next) => {
@@ -136,12 +142,12 @@ app.get = async (req, res, next) => {
   let result
   try {
     result = await City.findOne({
-      slug: id
-    }, {
-      _id: 0,
-      _cities: 0,
-      __v: 0
-    })
+        slug: id
+      }, {
+        _id: 0,
+        _cities: 0,
+        __v: 0
+      })
       .populate({
         path: 'stateId',
         select: '-_id slug',
@@ -149,13 +155,15 @@ app.get = async (req, res, next) => {
           isActive: true
         }
       })
-  } catch (error) {
-    return next(error)
-  }
 
-  res.status(200).json({
-    data: result
-  })
+    res.status(200).json({
+      data: result
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 app.update = async (req, res, next) => {
@@ -182,13 +190,15 @@ app.update = async (req, res, next) => {
     }, {
       new: true
     })
-  } catch (error) {
-    return next(error)
-  }
 
-  res.status(200).json({
-    data: result
-  })
+    res.status(200).json({
+      data: result
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 app.remove = async (req, res, next) => {
@@ -218,6 +228,7 @@ app.remove = async (req, res, next) => {
         _cities: cityInfo._id
       }
     })
+
     await State.findOneAndUpdate({
       _id: cityInfo.stateId
     }, {
@@ -225,13 +236,15 @@ app.remove = async (req, res, next) => {
         _citiesCount: -1
       }
     })
-  } catch (error) {
-    return next(error)
-  }
 
-  res.status(204).json({
-    data: result
-  })
+    res.status(204).json({
+      data: result
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 module.exports = app

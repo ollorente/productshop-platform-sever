@@ -8,7 +8,7 @@ const {
   User
 } = require('../models')
 
-app.create = async (req, res, next) => {
+/* app.create = async (req, res, next) => {
   const {
     displayName,
     email,
@@ -60,14 +60,16 @@ app.create = async (req, res, next) => {
   let result
   try {
     result = await newData.save()
-  } catch (error) {
-    return next(error)
-  }
 
-  res.status(200).json({
-    data: result
-  })
-}
+    res.status(200).json({
+      data: result
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
+} */
 
 app.list = async (req, res, next) => {
   const {
@@ -78,24 +80,26 @@ app.list = async (req, res, next) => {
   let result
   try {
     result = await User.find({}, {
-      _id: 0,
-      displayName: 1,
-      uid: 1,
-      isActive: 1,
-      isLock: 1
-    })
+        _id: 0,
+        displayName: 1,
+        uid: 1,
+        isActive: 1,
+        isLock: 1
+      })
       .limit(pagination.limit(limit))
       .skip(pagination.page(page))
       .sort({
         displayName: 1
       })
-  } catch (error) {
-    return next(error)
-  }
 
-  res.status(200).json({
-    data: result
-  })
+    res.status(200).json({
+      data: result
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 app.get = async (req, res, next) => {
@@ -106,11 +110,11 @@ app.get = async (req, res, next) => {
   let result
   try {
     result = await User.findOne({
-      uid: id
-    }, {
-      _id: 0,
-      __v: 0
-    })
+        uid: id
+      }, {
+        _id: 0,
+        __v: 0
+      })
       .populate({
         path: '_products',
         select: '-_id barcode title',
@@ -125,23 +129,20 @@ app.get = async (req, res, next) => {
           isLock: false
         }
       })
-  } catch (error) {
-    return next(error)
-  }
 
-  res.status(200).json({
-    data: result
-  })
+    res.status(200).json({
+      data: result
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 app.update = async (req, res, next) => {
-  const {
-    id
-  } = req.params
-  const update = req.body
-
   const userInfo = await User.findOne({
-    uid: id
+    _id: req.user._id
   })
   if (!userInfo) {
     return res.status(500).json({
@@ -158,35 +159,20 @@ app.update = async (req, res, next) => {
     }, {
       new: true
     })
-  } catch (error) {
-    return next(error)
-  }
 
-  res.status(200).json({
-    data: result
-  })
+    res.status(200).json({
+      data: result
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 app.remove = async (req, res, next) => {
-  let result
-  try {
-    result = await 'Remove'
-  } catch (error) {
-    return next(error)
-  }
-
-  res.status(200).json({
-    data: result
-  })
-}
-
-app.profile = async (req, res, next) => {
-  const {
-    id
-  } = req.params
-
   const userInfo = await User.findOne({
-    uid: id
+    _id: req.user._id
   })
   if (!userInfo) {
     return res.status(500).json({
@@ -196,13 +182,31 @@ app.profile = async (req, res, next) => {
 
   let result
   try {
-    result = await User.findOne({
+    result = await User.deleteOne({
       _id: userInfo._id
-    }, {
-      _id: 0,
-      isLock: 0,
-      __v: 0
     })
+
+    res.status(200).json({
+      data: result
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
+}
+
+app.profile = async (req, res, next) => {
+  let result
+  try {
+    result = await User.findOne({
+        _id: req.user._id
+      }, {
+        _id: 0,
+        password: 0,
+        isLock: 0,
+        __v: 0
+      })
       .populate({
         path: '_products',
         select: '-_id',
@@ -217,13 +221,15 @@ app.profile = async (req, res, next) => {
           isLock: false
         }
       })
-  } catch (error) {
-    return next(error)
-  }
 
-  res.status(200).json({
-    data: result
-  })
+    res.status(200).json({
+      data: result
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error.toString()
+    })
+  }
 }
 
 module.exports = app
