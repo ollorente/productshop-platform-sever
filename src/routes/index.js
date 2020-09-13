@@ -24,7 +24,7 @@ const {
 const pkg = require('../../package.json')
 
 router.route('/')
-  .get(verifyToken, AdminCheck, (req, res, next) => res.status(200).json({
+  .get((req, res, next) => res.status(200).json({
     message: 'Welcome to ProductShop APIRestful!',
     name: pkg.name,
     desciption: pkg.description,
@@ -100,7 +100,7 @@ router.route('/users')
 router.route('/users/:id')
   .get(verifyToken, AdminCheck, SuperuserCheck, USER.get)
   .put(verifyToken, AdminCheck, SuperuserCheck, USER.update)
-  .delete(verifyToken, AdminCheck, SuperuserCheck, USER.remove) /* TODO */
+  .delete(verifyToken, AdminCheck, SuperuserCheck, USER.remove)
 
 router.route('/users/:id/products')
   .get(verifyToken, AdminCheck, SuperuserCheck, PRODUCT.list)

@@ -92,6 +92,7 @@ app.list = async (req, res, next) => {
   const userInfo = await User.findOne({
     uid: id
   })
+
   if (!userInfo) {
     return res.status(500).json({
       error: 'Access denied!.'
@@ -248,7 +249,7 @@ app.remove = async (req, res, next) => {
     }, (error, item) => {
       if (error) {
         return res.status(500).json({
-          error: `Something bad occurred: ${error}`
+          error: error.toString()
         })
       }
 

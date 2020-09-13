@@ -1,5 +1,6 @@
 const {
   pagination,
+  superuserInfo,
   userInfo
 } = require('../helpers')
 
@@ -50,7 +51,9 @@ app.list = async (req, res, next) => {
 
   let result, count
   try {
-    result = await Superuser.find({}, {
+    result = await Superuser.find({
+      isLock: false
+    }, {
       _id: 0
     }).populate({
       path: 'userId',
@@ -65,7 +68,7 @@ app.list = async (req, res, next) => {
         userId: 1
       })
 
-    count = await Admin.countDocuments({
+    count = await Superuser.countDocuments({
       isLock: false
     })
 
@@ -122,9 +125,29 @@ app.get = async (req, res, next) => {
 }
 
 app.update = async (req, res, next) => {
+  const {
+    id
+  } = req.params
+
+  const update = req.body
+
+  const user = await superuserInfo(id)
+
+  if (!superuser) {
+    return res.status(403).json({
+      error: 'Access denied!.'
+    })
+  }
+
   let result
   try {
-    result = await 'Update'
+    result = await Superuser.findOneAndUpdate({
+      _id: user._id
+    }, {
+      $set: update
+    }, {
+      new: true
+    })
 
     res.status(200).json({
       data: result
@@ -137,9 +160,19 @@ app.update = async (req, res, next) => {
 }
 
 app.remove = async (req, res, next) => {
+  const user = await superuserInfo(id)
+
+  if (!superuser) {
+    return res.status(403).json({
+      error: 'Access denied!.'
+    })
+  }
+
   let result
   try {
-    result = await 'Remove'
+    result = await Superuser.deleteOne({
+      _id: user._id
+    })
 
     res.status(200).json({
       data: result

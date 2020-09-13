@@ -12,7 +12,11 @@ const {
 const app = {}
 
 const {
-  User
+  Admin,
+  Photo,
+  Product,
+  User,
+  Superuser
 } = require('../models')
 
 app.list = async (req, res, next) => {
@@ -60,7 +64,7 @@ app.get = async (req, res, next) => {
     id
   } = req.params
 
- let result
+  let result
   try {
     result = await User.findOne({
       uid: id
@@ -176,6 +180,46 @@ app.remove = async (req, res, next) => {
 
   let result
   try {
+    await Product.find({
+      userId: user._id
+    }, (error, products) => {
+      if (error) {
+        return res.status(500).json({
+          error: error.toString()
+        })
+      }
+
+      products.forEach(async e => {
+        await Photo.find({
+          productId: e._id
+        }, (error, photos) => {
+          if (error) {
+            return res.status(500).json({
+              error: error.toString()
+            })
+          }
+
+          photos.forEach(async e => {
+            await Photo.deleteOne({
+              _id: e._id
+            })
+          })
+        })
+
+        await Product.deleteOne({
+          _id: e._id
+        })
+      })
+    })
+
+    await Admin.deleteOne({
+      userId: user._id
+    })
+
+    await Superuser.deleteOne({
+      userId: user._id
+    })
+
     result = await User.deleteOne({
       _id: user._id
     })

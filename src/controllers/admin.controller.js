@@ -1,4 +1,5 @@
 const {
+  adminInfo,
   pagination,
   userInfo
 } = require('../helpers')
@@ -17,7 +18,7 @@ app.create = async (req, res, next) => {
 
   const user = await userInfo(userId)
 
-  const adminInfo = await adminInfo(user._id)
+  const admin = await adminInfo(user._id)
 
   if (!user) {
     return res.status(500).json({
@@ -25,7 +26,7 @@ app.create = async (req, res, next) => {
     })
   }
 
-  if (adminInfo) {
+  if (admin) {
     return res.status(500).json({
       error: 'Admin exist!.'
     })
