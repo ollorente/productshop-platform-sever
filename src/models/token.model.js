@@ -14,7 +14,8 @@ const dbSchema = new Schema({
     default: true
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  versionKey: false
 })
 
 module.exports = model('Token', dbSchema)

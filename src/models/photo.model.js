@@ -18,7 +18,8 @@ const dbSchema = new Schema({
     default: 1
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  versionKey: false
 })
 
 module.exports = model('Photo', dbSchema)

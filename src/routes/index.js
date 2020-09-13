@@ -1,7 +1,13 @@
 const router = require('express').Router()
+
 const {
   verifyToken
 } = require('../helpers')
+
+const {
+  AdminCheck,
+  SuperuserCheck
+} = require('../middlewares')
 
 const {
   ADMIN,
@@ -11,44 +17,51 @@ const {
   PHOTO,
   PRODUCT,
   STATE,
+  SUPERUSER,
   USER
 } = require('../controllers')
 
+const pkg = require('../../package.json')
+
 router.route('/')
-  .get(verifyToken, (req, res, next) => res.status(200).json({
-    message: 'Welcome to ProductShop APIRestful!'
+  .get(verifyToken, AdminCheck, (req, res, next) => res.status(200).json({
+    message: 'Welcome to ProductShop APIRestful!',
+    name: pkg.name,
+    desciption: pkg.description,
+    author: pkg.author,
+    version: pkg.version
   }))
 
 router.route('/admins')
-  .post(verifyToken, ADMIN.create)
-  .get(verifyToken, ADMIN.list)
+  .post(verifyToken, SuperuserCheck, ADMIN.create)
+  .get(verifyToken, AdminCheck, SuperuserCheck, ADMIN.list)
 
 router.route('/admins/:id')
-  .get(verifyToken, ADMIN.get)
-  .put(verifyToken, ADMIN.update)
-  .delete(verifyToken, ADMIN.remove)
+  .get(verifyToken, AdminCheck, SuperuserCheck, ADMIN.get)
+  .put(verifyToken, SuperuserCheck, ADMIN.update)
+  .delete(verifyToken, SuperuserCheck, ADMIN.remove)
 
 router.route('/cities/:id')
   .get(verifyToken, CITY.get)
-  .put(verifyToken, CITY.update)
-  .delete(verifyToken, CITY.remove)
+  .put(verifyToken, AdminCheck, SuperuserCheck, CITY.update)
+  .delete(verifyToken, AdminCheck, SuperuserCheck, CITY.remove)
 
 router.route('/countries')
-  .post(verifyToken, COUNTRY.create)
+  .post(verifyToken, AdminCheck, SuperuserCheck, COUNTRY.create)
   .get(verifyToken, COUNTRY.list)
 
 router.route('/countries/:id')
   .get(verifyToken, COUNTRY.get)
-  .put(verifyToken, COUNTRY.update)
-  .delete(verifyToken, COUNTRY.remove)
+  .put(verifyToken, AdminCheck, SuperuserCheck, COUNTRY.update)
+  .delete(verifyToken, AdminCheck, SuperuserCheck, COUNTRY.remove)
 
 router.route('/countries/:id/states')
-  .post(verifyToken, STATE.create)
-  .get(verifyToken, STATE.list)
+  .post(verifyToken, AdminCheck, SuperuserCheck, STATE.create)
+  .get(verifyToken, AdminCheck, SuperuserCheck, STATE.list)
 
 router.route('/photos/:id')
   .get(verifyToken, PHOTO.get) /* TODO */
-  .delete(verifyToken, PHOTO.remove) /* TODO */
+  .delete(verifyToken, AdminCheck, SuperuserCheck, PHOTO.remove) /* TODO */
 
 router.route('/products')
   .post(verifyToken, PRODUCT.create)
@@ -56,8 +69,8 @@ router.route('/products')
 
 router.route('/products/:id')
   .get(verifyToken, PRODUCT.get)
-  .put(verifyToken, PRODUCT.update)
-  .delete(verifyToken, PRODUCT.remove) /* TODO */
+  .put(verifyToken, AdminCheck, SuperuserCheck, PRODUCT.update)
+  .delete(verifyToken, AdminCheck, SuperuserCheck, PRODUCT.remove) /* TODO */
 
 router.route('/products/:id/photos')
   .post(verifyToken, PHOTO.create)
@@ -65,23 +78,32 @@ router.route('/products/:id/photos')
 
 router.route('/states/:id')
   .get(verifyToken, STATE.get)
-  .put(verifyToken, STATE.update)
-  .delete(verifyToken, STATE.remove)
+  .put(verifyToken, AdminCheck, SuperuserCheck, STATE.update)
+  .delete(verifyToken, AdminCheck, SuperuserCheck, STATE.remove)
 
 router.route('/states/:id/cities')
-  .post(verifyToken, CITY.create)
+  .post(verifyToken, AdminCheck, SuperuserCheck, CITY.create)
   .get(verifyToken, CITY.list)
 
+router.route('/superusers')
+  .post(SUPERUSER.create)
+  .get(verifyToken, SuperuserCheck, SUPERUSER.list)
+
+router.route('/superusers/:id')
+  .get(verifyToken, SuperuserCheck, SUPERUSER.get)
+  .put(verifyToken, SuperuserCheck, SUPERUSER.update)
+  .delete(verifyToken, SuperuserCheck, SUPERUSER.remove)
+
 router.route('/users')
-  .get(verifyToken, USER.list)
+  .get(verifyToken, AdminCheck, SuperuserCheck, USER.list)
 
 router.route('/users/:id')
-  .get(verifyToken, USER.get)
-  .put(verifyToken, USER.update)
-  .delete(verifyToken, USER.remove) /* TODO */
+  .get(verifyToken, AdminCheck, SuperuserCheck, USER.get)
+  .put(verifyToken, AdminCheck, SuperuserCheck, USER.update)
+  .delete(verifyToken, AdminCheck, SuperuserCheck, USER.remove) /* TODO */
 
 router.route('/users/:id/products')
-  .get(verifyToken, PRODUCT.list)
+  .get(verifyToken, AdminCheck, SuperuserCheck, PRODUCT.list)
 
 router.route('/login')
   .post(AUTH.login)
@@ -94,7 +116,7 @@ router.route('/register')
 
 router.route('*')
   .get((req, res, next) => res.status(404).json({
-    error: 'Page don\'t found!'
+    error: 'Page don\'t found!.'
   }))
 
 module.exports = router

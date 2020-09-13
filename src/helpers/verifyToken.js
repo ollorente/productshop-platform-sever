@@ -4,7 +4,7 @@ module.exports = function auth (req, res, next) {
   const token = req.header('Authorization')
   if (!token) {
     return res.status(401).json({
-      message: 'Access denied'
+      error: 'Access denied'
     })
   }
 
@@ -17,7 +17,7 @@ module.exports = function auth (req, res, next) {
     next()
   } catch (error) {
     res.status(400).json({
-      message: error.toString()
+      error: error.toString()
     })
   }
 }

@@ -28,6 +28,7 @@ const dbSchema = new Schema({
     min: 6
   },
   photoURL: String,
+  publicId: String,
   providerId: String,
   uid: {
     type: String,
@@ -51,7 +52,8 @@ const dbSchema = new Schema({
     default: false
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  versionKey: false
 })
 
 module.exports = model('User', dbSchema)

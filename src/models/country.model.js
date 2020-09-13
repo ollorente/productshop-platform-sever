@@ -27,6 +27,8 @@ const dbSchema = new Schema({
     type: Number,
     default: 0
   }
+}, {
+  versionKey: false
 })
 
 module.exports = model('Country', dbSchema)

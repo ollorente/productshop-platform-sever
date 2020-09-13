@@ -1,5 +1,12 @@
+const fs = require('fs-extra')
+
+const cloudinary = require('cloudinary')
+require('dotenv').config()
+require('../helpers/cloudinary')
+
 const {
-  pagination
+  pagination,
+  userInfo
 } = require('../helpers')
 
 const app = {}
@@ -8,76 +15,19 @@ const {
   User
 } = require('../models')
 
-/* app.create = async (req, res, next) => {
-  const {
-    displayName,
-    email,
-    phoneNumber,
-    photoURL,
-    providerId,
-    uid
-  } = req.body
-
-  if (email === '') {
-    return res.status(500).json({
-      error: 'Email is required!.'
-    })
-  }
-
-  const emailInfo = await User.findOne({
-    email: email
-  })
-  if (emailInfo) {
-    return res.status(500).json({
-      error: 'Email exist!.'
-    })
-  }
-
-  if (uid === '') {
-    return res.status(500).json({
-      error: 'UID is required.'
-    })
-  }
-
-  const uidInfo = await User.findOne({
-    uid: uid
-  })
-  if (uidInfo) {
-    return res.status(500).json({
-      error: 'UID exist!.'
-    })
-  }
-
-  const newData = new User({
-    displayName,
-    email,
-    phoneNumber,
-    photoURL,
-    providerId,
-    uid
-  })
-
-  let result
-  try {
-    result = await newData.save()
-
-    res.status(200).json({
-      data: result
-    })
-  } catch (error) {
-    res.status(500).json({
-      error: error.toString()
-    })
-  }
-} */
-
 app.list = async (req, res, next) => {
   const {
     limit,
     page
   } = req.query
 
-  let result
+  if (!admin && !superuser) {
+    return res.status(403).json({
+      error: 'Access denied!.'
+    })
+  }
+
+  let result, count
   try {
     result = await User.find({}, {
       _id: 0,
@@ -92,8 +42,11 @@ app.list = async (req, res, next) => {
         displayName: 1
       })
 
+    count = await User.countDocuments()
+
     res.status(200).json({
-      data: result
+      data: result,
+      count
     })
   } catch (error) {
     res.status(500).json({
@@ -107,13 +60,12 @@ app.get = async (req, res, next) => {
     id
   } = req.params
 
-  let result
+ let result
   try {
     result = await User.findOne({
       uid: id
     }, {
-      _id: 0,
-      __v: 0
+      _id: 0
     })
       .populate({
         path: '_products',
@@ -141,19 +93,52 @@ app.get = async (req, res, next) => {
 }
 
 app.update = async (req, res, next) => {
-  const userInfo = await User.findOne({
-    _id: req.user._id
-  })
-  if (!userInfo) {
+  const {
+    id
+  } = req.params
+
+  const update = req.body
+
+  const user = await userInfo(id)
+
+  if (!admin && !superuser) {
+    return res.status(403).json({
+      error: 'Access denied!.'
+    })
+  }
+
+  if (!user) {
     return res.status(500).json({
       error: 'User not found!.'
     })
   }
 
+  if (req.file) {
+    const photo = await cloudinary
+      .v2
+      .uploader
+      .upload(req.file.path, {
+        folder: `${user.uid}/`
+      },
+      function (error, result) {
+        console.log(result, error)
+      })
+
+    update.image = photo.secure_url
+    update.publicId = photo.public_id
+
+    cloudinary
+      .uploader
+      .destroy(user.publicId,
+        function (result) {
+          console.log(result)
+        })
+  }
+
   let result
   try {
     result = await User.findOneAndUpdate({
-      _id: userInfo._id
+      _id: user._id
     }, {
       $set: update
     }, {
@@ -171,10 +156,19 @@ app.update = async (req, res, next) => {
 }
 
 app.remove = async (req, res, next) => {
-  const userInfo = await User.findOne({
-    _id: req.user._id
-  })
-  if (!userInfo) {
+  const {
+    id
+  } = req.params
+
+  const user = await userInfo(id)
+
+  if (!admin && !superuser) {
+    return res.status(403).json({
+      error: 'Access denied!.'
+    })
+  }
+
+  if (!user) {
     return res.status(500).json({
       error: 'User not found!.'
     })
@@ -183,7 +177,7 @@ app.remove = async (req, res, next) => {
   let result
   try {
     result = await User.deleteOne({
-      _id: userInfo._id
+      _id: user._id
     })
 
     res.status(200).json({
@@ -204,12 +198,22 @@ app.profile = async (req, res, next) => {
     }, {
       _id: 0,
       password: 0,
-      isLock: 0,
-      __v: 0
+      publicId: 0,
+      isLock: 0
     })
       .populate({
         path: '_products',
-        select: '-_id',
+        select: '-_id title slug barcode _photos _photosCount createdAt',
+        populate: {
+          path: '_photos',
+          select: '-_id image order',
+          options: {
+            limit: 1,
+            sort: {
+              order: 1
+            }
+          }
+        },
         options: {
           limit: 10,
           sort: {

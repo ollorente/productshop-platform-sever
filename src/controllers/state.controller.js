@@ -148,8 +148,7 @@ app.get = async (req, res, next) => {
       slug: id
     }, {
       _id: 0,
-      _cities: 0,
-      __v: 0
+      _cities: 0
     })
       .populate({
         path: 'countryId',

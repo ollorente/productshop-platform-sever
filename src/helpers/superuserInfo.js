@@ -1,12 +1,12 @@
 const {
-    Superuser
-} = require("../models")
+  Superuser
+} = require('../models')
 
 const superuserInfo = async (data) => {
-    return await Superuser.findOne({
-        userId: data,
-        isLock: false
-    })
+  return await Superuser.findOne({
+    userId: data,
+    isLock: false
+  })
 }
 
 module.exports = superuserInfo

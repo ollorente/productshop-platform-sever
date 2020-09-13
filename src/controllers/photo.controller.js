@@ -40,12 +40,15 @@ app.create = async (req, res, next) => {
   }
 
   if (req.file) {
-    const result = await cloudinary.v2.uploader.upload(req.file.path, {
-      folder: `${userInfo.uid}/${productInfo.barcode}/`
-    },
-    function (error, result) {
-      console.log(result, error)
-    })
+    const result = await cloudinary
+      .v2
+      .uploader
+      .upload(req.file.path, {
+        folder: `${userInfo.uid}/${productInfo.barcode}/`
+      },
+      function (error, result) {
+        console.log(result, error)
+      })
 
     const newData = new Photo({
       productId: productInfo._id,

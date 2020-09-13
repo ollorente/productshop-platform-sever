@@ -41,7 +41,8 @@ const dbSchema = new Schema({
     default: 0
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  versionKey: false
 })
 
 module.exports = model('Product', dbSchema)

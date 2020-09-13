@@ -1,5 +1,7 @@
 const {
-  pagination
+  authUser,
+  pagination,
+  userInfo
 } = require('../helpers')
 
 const app = {}
@@ -144,12 +146,11 @@ app.get = async (req, res, next) => {
     id
   } = req.params
 
-  const userInfo = await User.findOne({
-    _id: req.user._id
-  })
-  if (!userInfo) {
-    return res.status(500).json({
-      error: 'Access denied!.'
+  const userAuth = await authUser(req.user._id)
+
+  if (!userAuth) {
+    return res.status(403).json({
+      error: error.toString()
     })
   }
 
@@ -157,20 +158,27 @@ app.get = async (req, res, next) => {
   try {
     result = await Product.findOne({
       barcode: id,
-      userId: userInfo._id
+      userId: userAuth._id
     }, {
       _id: 0,
-      isLock: 0,
-      __v: 0
+      isLock: 0
     })
-      .populate({
+      .populate([{
         path: 'userId',
         select: '-_id displayName photoURL uid',
         match: {
           isActive: true,
           isLock: false
         }
-      })
+      }, {
+        path: '_photos',
+        select: '-_id image order',
+        options: {
+          sort: {
+            order: 1
+          }
+        }
+      }])
 
     res.status(200).json({
       data: result
@@ -286,11 +294,10 @@ app.listPerUser = async (req, res, next) => {
     page
   } = req.query
 
-  const userInfo = await User.findOne({
-    _id: req.user._id
-  })
-  if (!userInfo) {
-    return res.status(500).json({
+  const userAuth = await authUser(req.user._id)
+
+  if (!userAuth) {
+    return res.status(403).json({
       error: error.toString()
     })
   }
@@ -298,7 +305,7 @@ app.listPerUser = async (req, res, next) => {
   let result, count
   try {
     result = await Product.find({
-      userId: userInfo._id
+      userId: userAuth._id
     }, {
       _id: 0,
       title: 1,
@@ -324,7 +331,7 @@ app.listPerUser = async (req, res, next) => {
       })
 
     count = await Product.countDocuments({
-      userId: userInfo._id
+      userId: userAuth._id
     })
 
     res.status(200).json({

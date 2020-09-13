@@ -13,7 +13,8 @@ const dbSchema = new Schema({
     default: false
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  versionKey: false
 })
 
 module.exports = model('Superuser', dbSchema)

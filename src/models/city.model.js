@@ -21,6 +21,8 @@ const dbSchema = new Schema({
     type: Boolean,
     default: true
   }
+}, {
+  versionKey: false
 })
 
 module.exports = model('City', dbSchema)

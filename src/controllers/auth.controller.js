@@ -47,6 +47,8 @@ app.register = async (req, res, next) => {
         password: hashedPassword,
         phoneNumber: req.body.phoneNumber || '',
         photoURL: req.body.photoURL || '',
+        publicId: '',
+        providerId: 'MyAuth',
         uid: uidRandom
       })
 
