@@ -122,7 +122,7 @@ app.login = async (req, res, next) => {
         token = JWT.sign({
           _id: user._id
         }, process.env.SECRET_KEY, {
-          expiresIn: '1h',
+          expiresIn: '2h',
           jwtid: uidRandom
         })
 
