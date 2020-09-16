@@ -36,6 +36,7 @@ app.list = async (req, res, next) => {
     result = await User.find({}, {
       _id: 0,
       displayName: 1,
+      photoURL: 1,
       uid: 1,
       isActive: 1,
       isLock: 1
@@ -69,7 +70,11 @@ app.get = async (req, res, next) => {
     result = await User.findOne({
       uid: id
     }, {
-      _id: 0
+      _id: 0,
+      password: 0,
+      email: 0,
+      publicId: 0,
+      providerId: 0
     })
       .populate({
         path: '_products',
@@ -128,7 +133,7 @@ app.update = async (req, res, next) => {
         console.log(result, error)
       })
 
-    update.image = photo.secure_url
+    update.photoURL = photo.secure_url
     update.publicId = photo.public_id
 
     cloudinary
@@ -247,7 +252,7 @@ app.profile = async (req, res, next) => {
     })
       .populate({
         path: '_products',
-        select: '-_id title slug barcode _photos _photosCount createdAt',
+        select: '-_id title slug barcode _photos _photosCount createdAt isActive',
         populate: {
           path: '_photos',
           select: '-_id image order',
@@ -259,9 +264,9 @@ app.profile = async (req, res, next) => {
           }
         },
         options: {
-          limit: 10,
+          limit: 5,
           sort: {
-            title: 1
+            createdAt: 1
           }
         },
         match: {

@@ -1,7 +1,6 @@
 const {
   authUser,
-  pagination,
-  userInfo
+  pagination
 } = require('../helpers')
 
 const app = {}
@@ -21,12 +20,10 @@ app.create = async (req, res, next) => {
     legals
   } = req.body
 
-  const userInfo = await User.findOne({
-    _id: req.user._id,
-    isLock: false
-  })
-  if (!userInfo) {
-    return res.status(500).json({
+  const user = await authUser(req.user._id)
+
+  if (!user) {
+    return res.status(403).json({
       error: 'Access denied'
     })
   }
@@ -34,6 +31,7 @@ app.create = async (req, res, next) => {
   const barcodeInfo = await Product.findOne({
     barcode: barcode
   })
+
   if (barcodeInfo) {
     return res.status(500).json({
       error: 'Product exist!.'
@@ -41,7 +39,7 @@ app.create = async (req, res, next) => {
   }
 
   const newData = new Product({
-    userId: userInfo._id,
+    userId: user._id,
     barcode: barcode,
     title,
     slug,
@@ -54,7 +52,7 @@ app.create = async (req, res, next) => {
     result = await newData.save()
 
     await User.findOneAndUpdate({
-      uid: userInfo.uid
+      uid: user.uid
     }, {
       $push: {
         _products: result._id
@@ -62,7 +60,7 @@ app.create = async (req, res, next) => {
     })
 
     await User.findOneAndUpdate({
-      uid: userInfo.uid
+      uid: user.uid
     }, {
       $inc: {
         _productsCount: 1

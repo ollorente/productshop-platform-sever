@@ -11,7 +11,7 @@ const registerValidation = data => {
       .email({
         minDomainSegments: 2,
         tlds: {
-          allow: ['com', 'net']
+          allow: ['com', 'net', 'org']
         }
       }),
     password: Joi.string()

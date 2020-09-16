@@ -13,8 +13,7 @@ const app = {}
 
 const {
   Photo,
-  Product,
-  User
+  Product
 } = require('../models')
 
 app.create = async (req, res, next) => {
@@ -44,11 +43,11 @@ app.create = async (req, res, next) => {
       .v2
       .uploader
       .upload(req.file.path, {
-        folder: `${userInfo.uid}/${productInfo.barcode}/`
-      },
-      function (error, result) {
-        console.log(result, error)
-      })
+          folder: `${userAuth.uid}/${productInfo.barcode}/`
+        },
+        function (error, result) {
+          console.log(result, error)
+        })
 
     const newData = new Photo({
       productId: productInfo._id,
@@ -113,16 +112,16 @@ app.list = async (req, res, next) => {
     })
   }
 
-  let result
+  let result, count
   try {
     result = await Photo.find({
-      productId: productInfo._id
-    }, {
-      productId: 1,
-      image: 1,
-      order: 1,
-      createdAt: 1
-    })
+        productId: productInfo._id
+      }, {
+        productId: 1,
+        image: 1,
+        order: 1,
+        createdAt: 1
+      })
       .populate({
         path: 'productId',
         select: '-_id barcode title',
@@ -136,8 +135,13 @@ app.list = async (req, res, next) => {
         order: 1
       })
 
+    count = await Photo.countDocuments({
+      productId: productInfo._id
+    })
+
     res.status(200).json({
-      data: result
+      data: result,
+      count
     })
   } catch (error) {
     res.status(500).json({

@@ -35,14 +35,6 @@ const dbSchema = new Schema({
     unique: true,
     required: true
   },
-  _products: [{
-    type: Schema.ObjectId,
-    ref: 'Product'
-  }],
-  _productsCount: {
-    type: Number,
-    default: 0
-  },
   isActive: {
     type: Boolean,
     default: true
@@ -50,6 +42,14 @@ const dbSchema = new Schema({
   isLock: {
     type: Boolean,
     default: false
+  },
+  _products: [{
+    type: Schema.ObjectId,
+    ref: 'Product'
+  }],
+  _productsCount: {
+    type: Number,
+    default: 0
   }
 }, {
   timestamps: true,
