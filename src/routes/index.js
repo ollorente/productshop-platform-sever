@@ -70,7 +70,7 @@ router.route('/products')
 router.route('/products/:id')
   .get(verifyToken, PRODUCT.get)
   .put(verifyToken, AdminCheck, SuperuserCheck, PRODUCT.update)
-  .delete(verifyToken, AdminCheck, SuperuserCheck, PRODUCT.remove) /* TODO */
+  .delete(verifyToken, AdminCheck, SuperuserCheck, PRODUCT.remove)
 
 router.route('/products/:id/photos')
   .post(verifyToken, PHOTO.create)
