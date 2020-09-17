@@ -1,5 +1,3 @@
-const fs = require('fs-extra')
-
 const cloudinary = require('cloudinary')
 require('dotenv').config()
 require('../helpers/cloudinary')
@@ -208,6 +206,8 @@ app.remove = async (req, res, next) => {
             await Photo.deleteOne({
               _id: e._id
             })
+
+            await cloudinary.v2.uploader.destroy(e.publicId)
           })
         })
 

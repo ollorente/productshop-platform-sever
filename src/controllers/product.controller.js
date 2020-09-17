@@ -1,6 +1,12 @@
+const cloudinary = require('cloudinary')
+require('dotenv').config()
+require('../helpers/cloudinary')
+
 const {
+  adminInfo,
   authUser,
-  pagination
+  pagination,
+  superuserInfo
 } = require('../helpers')
 
 const app = {}
@@ -87,28 +93,34 @@ app.list = async (req, res, next) => {
     page
   } = req.query
 
-  const userInfo = await User.findOne({
-    uid: id
-  })
+  const userAuth = await authUser(req.user._id)
 
-  if (!userInfo) {
+  const user = await userInfo(id)
+
+  if (!userAuth) {
+    return res.status(403).json({
+      error: 'Access denied'
+    })
+  }
+
+  if (!user) {
     return res.status(500).json({
-      error: 'Access denied!.'
+      error: 'User not found!.'
     })
   }
 
   let result, count
   try {
     result = await Product.find({
-      userId: userInfo._id
-    }, {
-      _id: 0,
-      title: 1,
-      barcode: 1,
-      isActive: 1,
-      createdAt: 1,
-      _photos: 1
-    })
+        userId: user._id
+      }, {
+        _id: 0,
+        title: 1,
+        barcode: 1,
+        isActive: 1,
+        createdAt: 1,
+        _photos: 1
+      })
       .populate({
         path: '_photos',
         select: '-_id image order',
@@ -126,7 +138,7 @@ app.list = async (req, res, next) => {
       })
 
     count = await Product.countDocuments({
-      userId: userInfo._id
+      userId: user._id
     })
 
     res.status(200).json({
@@ -145,23 +157,23 @@ app.get = async (req, res, next) => {
     id
   } = req.params
 
-  const userAuth = await authUser(req.user._id)
+  const user = await authUser(req.user._id)
 
-  if (!userAuth) {
+  if (!user) {
     return res.status(403).json({
-      error: error.toString()
+      error: 'Access denied'
     })
   }
 
   let result
   try {
     result = await Product.findOne({
-      barcode: id,
-      userId: userAuth._id
-    }, {
-      _id: 0,
-      isLock: 0
-    })
+        barcode: id,
+        userId: user._id
+      }, {
+        _id: 0,
+        isLock: 0
+      })
       .populate([{
         path: 'userId',
         select: '-_id displayName photoURL uid',
@@ -195,13 +207,26 @@ app.update = async (req, res, next) => {
   } = req.params
   const update = req.body
 
+  const user = await authUser(req.user._id)
+
+  const admin = await adminInfo(user._id)
+
+  const superuser = await superuserInfo(user._id)
+
+  if (!user && !admin && !superuser) {
+    return res.status(403).json({
+      error: 'Access denied!.'
+    })
+  }
+
   const productInfo = await Product.findOne({
     barcode: id,
-    userId: req.user._id
+    userId: user._id
   })
+
   if (!productInfo) {
     return res.status(500).json({
-      error: 'Product don\'t found!.'
+      error: `Product don't found!.`
     })
   }
 
@@ -230,13 +255,32 @@ app.remove = async (req, res, next) => {
     id
   } = req.params
 
+  const user = await authUser(req.user._id)
+
+  const admin = await adminInfo(user._id)
+
+  const superuser = await superuserInfo(user._id)
+
   const productInfo = await Product.findOne({
     barcode: id,
-    userId: req.user._id
+    userId: user._id
   })
+
+  if (!user && !admin && !superuser) {
+    return res.status(403).json({
+      error: 'Access denied!.'
+    })
+  }
+
   if (!productInfo) {
     return res.status(500).json({
-      error: error.toString()
+      error: 'Product not found!.'
+    })
+  }
+
+  if (!user) {
+    return res.status(500).json({
+      error: 'User not found!.'
     })
   }
 
@@ -255,10 +299,28 @@ app.remove = async (req, res, next) => {
         await Photo.deleteOne({
           productId: e._id
         })
+
+        await Product.findOneAndUpdate({
+          productId: e._id
+        }, {
+          $pull: {
+            _photos: result._id
+          }
+        })
+
+        await Product.findOneAndUpdate({
+          productId: e._id
+        }, {
+          $inc: {
+            _photosCount: -1
+          }
+        })
+
+        await cloudinary.v2.uploader.destroy(e.publicId)
       })
     })
 
-    result = await User.deleteOne({
+    result = await Product.deleteOne({
       _id: productInfo._id
     })
 
@@ -269,6 +331,7 @@ app.remove = async (req, res, next) => {
         _products: result._id
       }
     })
+
     await User.findOneAndUpdate({
       _id: productInfo.userId
     }, {
@@ -277,7 +340,7 @@ app.remove = async (req, res, next) => {
       }
     })
 
-    res.status(204).json({
+    res.status(200).json({
       data: result
     })
   } catch (error) {
@@ -304,15 +367,15 @@ app.listPerUser = async (req, res, next) => {
   let result, count
   try {
     result = await Product.find({
-      userId: userAuth._id
-    }, {
-      _id: 0,
-      title: 1,
-      barcode: 1,
-      isActive: 1,
-      createdAt: 1,
-      _photos: 1
-    })
+        userId: userAuth._id
+      }, {
+        _id: 0,
+        title: 1,
+        barcode: 1,
+        isActive: 1,
+        createdAt: 1,
+        _photos: 1
+      })
       .populate({
         path: '_photos',
         select: '-_id image order',
