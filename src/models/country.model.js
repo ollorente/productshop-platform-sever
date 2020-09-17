@@ -14,7 +14,10 @@ const dbSchema = new Schema({
     unique: true
   },
   code: String,
-  currency: String,
+  currency: {
+    type: String,
+    uppercase: true
+  },
   isActive: {
     type: Boolean,
     default: true
